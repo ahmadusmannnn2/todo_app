@@ -1,22 +1,31 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(TodoApp());
+  runApp(const TodoApp());
 }
 
 class TodoApp extends StatelessWidget {
+  const TodoApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Advanced Todo App',
+      title: 'ToDoIn App by:Usman👋',
       theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      home: TodoListScreen(),
+      darkTheme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black87,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black,
+        ),
+      ),
+      home: const TodoListScreen(),
     );
   }
 }
 
 class TodoListScreen extends StatefulWidget {
+  const TodoListScreen({super.key});
+
   @override
   _TodoListScreenState createState() => _TodoListScreenState();
 }
@@ -33,13 +42,16 @@ class _TodoListScreenState extends State<TodoListScreen> {
       theme: currentTheme,
       home: Scaffold(
         appBar: AppBar(
-          title: Text('Advanced Todo List'),
+          title: const Text('ToDoIn App by: Ahmad Usman 👋'),
           actions: [
-            Switch(
-              value: isDarkMode,
-              onChanged: (value) {
+            IconButton(
+              icon: Icon(
+                isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                color: isDarkMode ? Colors.yellow : Colors.blue,
+              ),
+              onPressed: () {
                 setState(() {
-                  isDarkMode = value;
+                  isDarkMode = !isDarkMode;
                 });
               },
             ),
@@ -48,14 +60,14 @@ class _TodoListScreenState extends State<TodoListScreen> {
         body: Column(
           children: [
             Padding(
-              padding: EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(8.0),
               child: TextField(
                 onChanged: (value) {
                   setState(() {
                     searchQuery = value;
                   });
                 },
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.search),
                   hintText: 'Cari tugas...',
                 ),
@@ -71,28 +83,54 @@ class _TodoListScreenState extends State<TodoListScreen> {
                           .contains(searchQuery.toLowerCase())) {
                     return Container(); // Skip items that don't match the search query
                   }
-                  return ListTile(
-                    title: Text(
-                      tasks[index]['title'],
-                      style: TextStyle(
-                        color: tasks[index]['priority'] == 'Tinggi'
-                            ? Colors.red
-                            : tasks[index]['priority'] == 'Sedang'
-                                ? Colors.orange
-                                : Colors.green,
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 5.0, horizontal: 10.0),
+                    child: ListTile(
+                      title: Text(
+                        tasks[index]['title'],
+                        style: TextStyle(
+                          color: tasks[index]['priority'] == 'Tinggi'
+                              ? Colors.red
+                              : tasks[index]['priority'] == 'Sedang'
+                                  ? Colors.orange
+                                  : Colors.green,
+                        ),
                       ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Kategori: ${tasks[index]['category']}'),
-                        if (tasks[index]['deadline'] != null)
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Kategori: ${tasks[index]['category']}'),
+                          if (tasks[index]['deadline'] != null)
+                            Text(
+                                'Deadline: ${tasks[index]['deadline'].day}/${tasks[index]['deadline'].month}/${tasks[index]['deadline'].year}'),
                           Text(
-                              'Deadline: ${tasks[index]['deadline'].day}/${tasks[index]['deadline'].month}/${tasks[index]['deadline'].year}'),
-                        Text('Deskripsi: ${tasks[index]['description'] ?? ''}'),
-                        Text(
-                            'Berulang: ${tasks[index]['isRecurring'] ? "Ya" : "Tidak"}'),
-                      ],
+                              'Deskripsi: ${tasks[index]['description'] ?? ''}'),
+                          Text(
+                              'Berulang: ${tasks[index]['isRecurring'] ? "Ya" : "Tidak"}'),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.check_circle, color: Colors.green),
+                            onPressed: () {
+                              setState(() {
+                                tasks[index]['completed'] = true;
+                              });
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                tasks.removeAt(index);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -102,7 +140,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _addTask(),
-          child: Icon(Icons.add),
+          child: const Icon(Icons.add),
         ),
       ),
     );
@@ -119,87 +157,92 @@ class _TodoListScreenState extends State<TodoListScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('New Task'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: InputDecoration(hintText: 'Enter task title'),
-            ),
-            TextField(
-              controller: descriptionController,
-              decoration: InputDecoration(hintText: 'Enter task description'),
-            ),
-            DropdownButton<String>(
-              value: selectedCategory,
-              items: ['Pekerjaan', 'Pribadi', 'Belanja'].map((String category) {
-                return DropdownMenuItem(value: category, child: Text(category));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedCategory = value!;
-                });
-              },
-            ),
-            DropdownButton<String>(
-              value: selectedPriority,
-              items: ['Tinggi', 'Sedang', 'Rendah'].map((String priority) {
-                return DropdownMenuItem(value: priority, child: Text(priority));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedPriority = value!;
-                });
-              },
-            ),
-            TextButton(
-              child: Text(selectedDate == null
-                  ? 'Select Deadline'
-                  : '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'),
-              onPressed: () async {
-                DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime(2101),
-                );
-                if (pickedDate != null) {
+        title: const Text('Tugas Baru'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(hintText: 'Judul tugas'),
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(hintText: 'Deskripsi tugas'),
+              ),
+              DropdownButton<String>(
+                value: selectedCategory,
+                items: ['Pekerjaan', 'Pribadi', 'Belanja']
+                    .map((String category) {
+                  return DropdownMenuItem(
+                      value: category, child: Text(category));
+                }).toList(),
+                onChanged: (value) {
                   setState(() {
-                    selectedDate = pickedDate;
+                    selectedCategory = value!;
                   });
-                }
-              },
-            ),
-            CheckboxListTile(
-              title: Text('Penjadwalan Berulang'),
-              value: isRecurring,
-              onChanged: (bool? value) {
-                setState(() {
-                  isRecurring = value!;
-                });
-              },
-            ),
-          ],
+                },
+              ),
+              DropdownButton<String>(
+                value: selectedPriority,
+                items: ['Tinggi', 'Sedang', 'Rendah'].map((String priority) {
+                  return DropdownMenuItem(
+                      value: priority, child: Text(priority));
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedPriority = value!;
+                  });
+                },
+              ),
+              TextButton(
+                child: Text(selectedDate == null
+                    ? 'Pilih Deadline'
+                    : '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'),
+                onPressed: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime(2101),
+                  );
+                  if (pickedDate != null) {
+                    setState(() {
+                      selectedDate = pickedDate;
+                    });
+                  }
+                },
+              ),
+              CheckboxListTile(
+                title: const Text('Tugas Berulang'),
+                value: isRecurring,
+                onChanged: (bool? value) {
+                  setState(() {
+                    isRecurring = value!;
+                  });
+                },
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
-            child: Text('Add'),
+            child: const Text('Tambah'),
             onPressed: () {
-              setState(() {
-                tasks.add({
-                  'title': titleController.text,
-                  'completed': false,
-                  'category': selectedCategory,
-                  'priority': selectedPriority,
-                  'deadline': selectedDate,
-                  'isRecurring': isRecurring,
-                  'description': descriptionController.text,
+              if (titleController.text.isNotEmpty) {
+                setState(() {
+                  tasks.add({
+                    'title': titleController.text,
+                    'completed': false,
+                    'category': selectedCategory,
+                    'priority': selectedPriority,
+                    'deadline': selectedDate,
+                    'isRecurring': isRecurring,
+                    'description': descriptionController.text,
+                  });
                 });
-                titleController.clear();
-                descriptionController.clear();
-              });
-              Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              }
             },
           ),
         ],
